@@ -23,7 +23,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.20.0",
+    "axios": "^0.21.1",
     "chokidar": "^3.5.0",
     "lodash.throttle": "^4.1.1",
     "yaml": "^1.0.0",
