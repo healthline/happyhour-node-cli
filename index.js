@@ -3,7 +3,7 @@
 'use strict'
 
 const CONFIG_FILE = '.happyhour'
-const API_URL = 'https://happyhour.platejoy.com'
+const API_URL = 'https://happyhour.platejoy.com/api/v1/work_stream_entries'
 
 const axios = require('axios')
 const { exec } = require('child_process')
@@ -19,50 +19,54 @@ const yargs = require('yargs')
 const YAML = require('yaml')
 
 const CHOKIDAR_CONFIG = {
-  followSymlinks: false,
-  usePolling: false,
-  interval: 100,
   binaryInterval: 300,
+  followSymlinks: false,
   ignoreInitial: true,
-};
+  interval: 100,
+  usePolling: false,
+}
 
 const VERSION = `happyhour-cli: ${version}`
 
 const {argv} = yargs
-    .usage(
-        'First: happyhour init\n' +
-        'Then: happyhour track'
-    )
-    .demand(1)
-    .option('u', {
-        alias: 'url',
-        default: API_URL,
-        describe: 'For overriding the API URL (e.g. for testing)',
-        type: 'string'
-    })
-    .help('h')
-    .alias('h', 'help')
-    .alias('v', 'version')
-    .version(VERSION);
+  .usage(
+    'happyhour init'
+  )
+  .demand(1)
+  .option('u', {
+      alias: 'url',
+      default: API_URL,
+      describe: 'For overriding the API URL (e.g. for testing)',
+      type: 'string'
+  })
+  .option('d', {
+      alias: 'debug',
+      describe: 'Output tracking to console rather than POSTing to server',
+      type: 'boolean'
+  })
+  .help('h')
+  .alias('h', 'help')
+  .alias('v', 'version')
+  .version(VERSION)
 
 function main() {
-    const command = argv._[0];
+  const command = argv._[0]
 
-    switch (command) {
-      case 'init':
-        init();
-        break;
+  switch (command) {
+    case 'init':
+      init()
+      break
 
-      case 'track':
-        track(argv.url || API_URL);
-        break;
-    }
+    case 'watch':
+      watch()
+      break
+  }
 }
 
 async function init() {
   let yamlData = {}
   try {
-    yamlData = YAML.parse(await readConfig())
+    yamlData = await readConfig()
   } catch(e) {
   }
 
@@ -71,7 +75,7 @@ async function init() {
     if (newProjectToken)
       yamlData.project_token = newProjectToken
   } else {
-    yamlData.project_token = await promptUser('Your project token [from RV HappyHour]: ')
+    yamlData.project_token = await promptUser('Your project token [from happyhour.platejoy.com]: ')
   }
 
   if (yamlData.patterns) {
@@ -84,7 +88,7 @@ async function init() {
 
   readline.close()
 
-  writeConfig(YAML.stringify(yamlData))
+  await writeConfig(YAML.stringify(yamlData))
 
   console.log(
 `
@@ -94,35 +98,56 @@ Ready! Next steps:
 1. If you use a Procfile:
 
   Add the following line to your Procfile.dev:
-    happyhour: node_modules/.bin/happyhour track
+    happyhour: node_modules/.bin/happyhour watch
 
 
 2. If you use Yarn or NMP to run scripts:
 
   Add the following line to your package.json scripts:
-    "happyhour-track": "node_modules/.bin/happyhour track"
+    "happyhour-watch": "node_modules/.bin/happyhour watch"
   Then:
-    % yarn run happyhour-track
+    % yarn run happyhour-watch
   OR:
-    % npm run happyhour-track
+    % npm run happyhour-watch
 
 `
   )
 }
 
-async function track(url) {
-  const yamlString = await readConfig()
-  const yamlData = YAML.parse(yamlString)
-  const branch = await gitBranch()
+async function watch() {
+  const patterns = (await readPatterns()).split(' ')
+  const watcher = chokidar.watch(patterns, CHOKIDAR_CONFIG)
+  const throttledTrack = throttle(track, 1000)
 
-  axios.post(url, {
-    token: yamlData.project_token,
-    branch: branch
-  })
+  watcher.on('all', throttledTrack)
+
+  watcher.on('error', error => {
+    console.error('Error:', error)
+    console.error(error.stack)
+  });
+
+  watcher.once('ready', () => console.log(`happyhour watching: ${patterns}`))
 }
 
-function gitBranch() {
-  return new Promise((resolve, reject) => {
+async function track() {
+  const url = argv.url || API_URL
+  const debug = argv.debug
+  const yamlData = await readConfig()
+  const branch = await gitBranch()
+
+  if (debug) {
+    console.log(`happyhour: ${branch} -> ${yamlData.project_token}`)
+  } else {
+    console.log(`happyhour: ${branch}`)
+    axios.post(url, {
+      token: yamlData.project_token,
+      branch: branch
+    })
+  }
+}
+
+async function gitBranch() {
+  return await new Promise((resolve, reject) => {
     exec('git rev-parse --abbrev-ref HEAD', (error, stdout, stderr) => {
       if (error) {
           reject(error.message)
@@ -133,25 +158,19 @@ function gitBranch() {
           return;
       }
 
-      resolve(stdout)
+      resolve(stdout.trim())
     })
   })
 }
 
-function readConfig() {
-  return new Promise((resolve, reject) => {
-    fs.readFile(CONFIG_FILE, 'utf8', (err, data) => {
-      if (err) {
-        reject()
-        return
-      }
-      resolve(data)
-    })
-  });
+async function readPatterns() {
+  return (await readConfig()).patterns
 }
 
-function writeConfig(string) {
-  return new Promise((resolve, reject) => {
+// async functions:
+
+async function writeConfig(string) {
+  return await new Promise((resolve, reject) => {
     fs.writeFile(CONFIG_FILE, string, err => {
       if (err) {
         reject()
@@ -162,35 +181,22 @@ function writeConfig(string) {
   });
 }
 
-function promptUser(prompt) {
-  return new Promise(resolve =>
+async function promptUser(prompt) {
+  return await new Promise(resolve =>
     readline.question(prompt, response => resolve(response))
   )
 }
 
-async function patterns() {
-  const yamlString = await readConfig()
-  const yamlData = YAML.parse(yamlString)
-  return yamlData.patterns
-}
-
-function startWatching() {
-  const watcher = chokidar.watch(patterns(), CHOKIDAR_CONFIG)
-  const throttledTrack = throttle(track, 1000)
-
-  watcher.on('all', throttledTrack)
-
-  watcher.on('error', error => {
-    console.error('Error:', error)
-    console.error(error.stack)
+async function readConfig() {
+  return await new Promise((resolve, reject) => {
+    fs.readFile(CONFIG_FILE, 'utf8', (err, data) => {
+      if (err) {
+        reject()
+        return
+      }
+      resolve(YAML.parse(data))
+    })
   });
-
-  watcher.once('ready', () => {
-    const list = opts.patterns.join('", "')
-    if (!opts.silent) {
-      console.error('Watching', `"${list}" ..`)
-    }
-  })
 }
 
 main()
