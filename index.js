@@ -90,6 +90,8 @@ async function init() {
 
   await writeConfig(YAML.stringify(yamlData))
 
+  addHappyhourConfigToGitignore()
+
   console.log(
 `
 
@@ -197,6 +199,9 @@ async function readConfig() {
       resolve(YAML.parse(data))
     })
   });
+}
+
+async function addHappyhourConfigToGitignore() {
 }
 
 main()
