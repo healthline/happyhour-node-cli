@@ -6,18 +6,25 @@ const CONFIG_FILE = '.happyhour'
 const API_URL = 'https://happyhour.platejoy.com'
 
 const axios = require('axios')
-const yargs = require('yargs')
-const { version } = require('./package.json')
+const { exec } = require('child_process')
+const chokidar = require('chokidar')
 const fs = require('fs')
-const YAML = require('yaml')
-const { exec } = require("child_process")
 const readline = require('readline').createInterface({
   input: process.stdin,
   output: process.stdout
 })
+const throttle = require('lodash.throttle')
+const { version } = require('./package.json')
+const yargs = require('yargs')
+const YAML = require('yaml')
 
-const defaultOpts = {
-}
+const CHOKIDAR_CONFIG = {
+  followSymlinks: false,
+  usePolling: false,
+  interval: 100,
+  binaryInterval: 300,
+  ignoreInitial: true,
+};
 
 const VERSION = `happyhour-cli: ${version}`
 
@@ -40,7 +47,6 @@ const {argv} = yargs
 
 function main() {
     const command = argv._[0];
-    console.log(argv)
 
     switch (command) {
       case 'init':
@@ -54,7 +60,6 @@ function main() {
 }
 
 async function init() {
-  console.log('called init')
   let yamlData = {}
   try {
     yamlData = YAML.parse(await readConfig())
@@ -80,6 +85,29 @@ async function init() {
   readline.close()
 
   writeConfig(YAML.stringify(yamlData))
+
+  console.log(
+`
+
+Ready! Next steps:
+
+1. If you use a Procfile:
+
+  Add the following line to your Procfile.dev:
+    happyhour: node_modules/.bin/happyhour track
+
+
+2. If you use Yarn or NMP to run scripts:
+
+  Add the following line to your package.json scripts:
+    "happyhour-track": "node_modules/.bin/happyhour track"
+  Then:
+    % yarn run happyhour-track
+  OR:
+    % npm run happyhour-track
+
+`
+  )
 }
 
 async function track(url) {
@@ -140,4 +168,29 @@ function promptUser(prompt) {
   )
 }
 
-main();
+async function patterns() {
+  const yamlString = await readConfig()
+  const yamlData = YAML.parse(yamlString)
+  return yamlData.patterns
+}
+
+function startWatching() {
+  const watcher = chokidar.watch(patterns(), CHOKIDAR_CONFIG)
+  const throttledTrack = throttle(track, 1000)
+
+  watcher.on('all', throttledTrack)
+
+  watcher.on('error', error => {
+    console.error('Error:', error)
+    console.error(error.stack)
+  });
+
+  watcher.once('ready', () => {
+    const list = opts.patterns.join('", "')
+    if (!opts.silent) {
+      console.error('Watching', `"${list}" ..`)
+    }
+  })
+}
+
+main()
