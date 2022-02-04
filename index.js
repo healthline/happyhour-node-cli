@@ -108,7 +108,7 @@ Ready! Next steps:
 
   Add the following line to your package.json scripts:
     "happyhour-watch": "node_modules/.bin/happyhour watch"
-  Then:
+  Then, from your project root:
     % yarn run happyhour-watch
   OR:
     % npm run happyhour-watch
