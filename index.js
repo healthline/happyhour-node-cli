@@ -3,6 +3,7 @@
 'use strict'
 
 const CONFIG_FILE = '.happyhour'
+const GITIGNORE_FILE = '.gitignore'
 const API_URL = 'https://happyhour.platejoy.com/api/v1/work_stream_entries'
 
 const axios = require('axios')
@@ -171,18 +172,6 @@ async function readPatterns() {
 
 // async functions:
 
-async function writeConfig(string) {
-  return await new Promise((resolve, reject) => {
-    fs.writeFile(CONFIG_FILE, string, err => {
-      if (err) {
-        reject()
-        return
-      }
-      resolve()
-    })
-  });
-}
-
 async function promptUser(prompt) {
   return await new Promise(resolve =>
     readline.question(prompt, response => resolve(response))
@@ -201,7 +190,46 @@ async function readConfig() {
   });
 }
 
+async function writeConfig(string) {
+  return await new Promise((resolve, reject) => {
+    fs.writeFile(CONFIG_FILE, string, err => {
+      if (err) {
+        reject()
+        return
+      }
+      resolve()
+    })
+  });
+}
+
 async function addHappyhourConfigToGitignore() {
+  const gitignoreFile = await readGitignore()
+  if (gitignoreFile.includes(CONFIG_FILE)) return
+  await writeGitignore(gitignoreFile + "\n" + CONFIG_FILE + "\n")
+}
+
+async function readGitignore() {
+  return await new Promise((resolve, reject) => {
+    fs.readFile(GITIGNORE_FILE, 'utf8', (err, data) => {
+      if (err) {
+        reject()
+        return
+      }
+      resolve(data)
+    })
+  });
+}
+
+async function writeGitignore(string) {
+  return await new Promise((resolve, reject) => {
+    fs.writeFile(GITIGNORE_FILE, string, err => {
+      if (err) {
+        reject()
+        return
+      }
+      resolve()
+    })
+  });
 }
 
 main()

@@ -3,4 +3,5 @@ test-fixtures
 coverage
 *.bak
 *.log
+
 .happyhour
