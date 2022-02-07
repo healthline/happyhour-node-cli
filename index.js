@@ -12,7 +12,7 @@ const chokidar = require('chokidar')
 const fs = require('fs')
 const readline = require('readline').createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 })
 const throttle = require('lodash.throttle')
 const { version } = require('./package.json')
@@ -29,21 +29,19 @@ const CHOKIDAR_CONFIG = {
 
 const VERSION = `happyhour-cli: ${version}`
 
-const {argv} = yargs
-  .usage(
-    'happyhour init'
-  )
+const { argv } = yargs
+  .usage('happyhour init')
   .demand(1)
   .option('u', {
-      alias: 'url',
-      default: API_URL,
-      describe: 'For overriding the API URL (e.g. for testing)',
-      type: 'string'
+    alias: 'url',
+    default: API_URL,
+    describe: 'For overriding the API URL (e.g. for testing)',
+    type: 'string',
   })
   .option('d', {
-      alias: 'debug',
-      describe: 'Output tracking to console rather than POSTing to server',
-      type: 'boolean'
+    alias: 'debug',
+    describe: 'Output tracking to console rather than POSTing to server',
+    type: 'boolean',
   })
   .help('h')
   .alias('h', 'help')
@@ -68,21 +66,18 @@ async function init() {
   let yamlData = {}
   try {
     yamlData = await readConfig()
-  } catch(e) {
-  }
+  } catch (e) {}
 
   if (yamlData.project_token) {
     const newProjectToken = await promptUser(`Your project token [${yamlData.project_token}]: `)
-    if (newProjectToken)
-      yamlData.project_token = newProjectToken
+    if (newProjectToken) yamlData.project_token = newProjectToken
   } else {
     yamlData.project_token = await promptUser('Your project token [from happyhour.platejoy.com]: ')
   }
 
   if (yamlData.patterns) {
     const newPatterns = await promptUser(`Watch patterns [${yamlData.patterns}]: `)
-    if (newPatterns)
-      yamlData.patterns = newPatterns
+    if (newPatterns) yamlData.patterns = newPatterns
   } else {
     yamlData.patterns = await promptUser('Watch patterns [e.g.: **/*.rb app/javascript/**/*.js]: ')
   }
@@ -94,7 +89,7 @@ async function init() {
   addHappyhourConfigToGitignore()
 
   console.log(
-`
+    `
 
 Ready! Next steps:
 
@@ -127,7 +122,7 @@ async function watch() {
   watcher.on('error', error => {
     console.error('Error:', error)
     console.error(error.stack)
-  });
+  })
 
   watcher.once('ready', () => console.log(`happyhour watching: ${patterns}`))
 }
@@ -137,15 +132,14 @@ async function track() {
   const debug = argv.debug
   const yamlData = await readConfig()
   const branch = await gitBranch()
+  const headers = { Authorization: `Bearer ${yamlData.project_token}` }
+  const data = { branch: branch }
 
   if (debug) {
-    console.log(`happyhour: ${branch} -> ${yamlData.project_token}`)
+    console.log(`happyhour: ${data.branch} -> ${headers['Authorization']}`)
   } else {
     console.log(`happyhour: ${branch}`)
-    axios.post(url, {
-      token: yamlData.project_token,
-      branch: branch
-    })
+    axios.post(url, data, { headers: headers })
   }
 }
 
@@ -153,12 +147,12 @@ async function gitBranch() {
   return await new Promise((resolve, reject) => {
     exec('git rev-parse --abbrev-ref HEAD', (error, stdout, stderr) => {
       if (error) {
-          reject(error.message)
-          return;
+        reject(error.message)
+        return
       }
       if (stderr) {
-          reject(stderr)
-          return;
+        reject(stderr)
+        return
       }
 
       resolve(stdout.trim())
@@ -173,9 +167,7 @@ async function readPatterns() {
 // async functions:
 
 async function promptUser(prompt) {
-  return await new Promise(resolve =>
-    readline.question(prompt, response => resolve(response))
-  )
+  return await new Promise(resolve => readline.question(prompt, response => resolve(response)))
 }
 
 async function readConfig() {
@@ -187,7 +179,7 @@ async function readConfig() {
       }
       resolve(YAML.parse(data))
     })
-  });
+  })
 }
 
 async function writeConfig(string) {
@@ -199,13 +191,13 @@ async function writeConfig(string) {
       }
       resolve()
     })
-  });
+  })
 }
 
 async function addHappyhourConfigToGitignore() {
   const gitignoreFile = await readGitignore()
   if (gitignoreFile.includes(CONFIG_FILE)) return
-  await writeGitignore(gitignoreFile + "\n" + CONFIG_FILE + "\n")
+  await writeGitignore(gitignoreFile + '\n' + CONFIG_FILE + '\n')
 }
 
 async function readGitignore() {
@@ -217,7 +209,7 @@ async function readGitignore() {
       }
       resolve(data)
     })
-  });
+  })
 }
 
 async function writeGitignore(string) {
@@ -229,7 +221,7 @@ async function writeGitignore(string) {
       }
       resolve()
     })
-  });
+  })
 }
 
 main()
