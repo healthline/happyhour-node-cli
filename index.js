@@ -18,6 +18,7 @@ const throttle = require('lodash.throttle')
 const { version } = require('./package.json')
 const yargs = require('yargs')
 const YAML = require('yaml')
+const findConfig = require('find-config')
 
 const CHOKIDAR_CONFIG = {
   binaryInterval: 300,
@@ -91,22 +92,13 @@ async function init() {
   console.log(
     `
 
-Ready! Next steps:
+Keep HappyHour running from the root of your work directory:
 
-1. If you use a Procfile:
+% happyhour watch
 
-  Add the following line to your Procfile.dev:
-    happyhour: node_modules/.bin/happyhour watch
+Follow the JIRA-ticket/feature-description branching convention:
 
-
-2. If you use Yarn or NMP to run scripts:
-
-  Add the following line to your package.json scripts:
-    "happyhour-watch": "node_modules/.bin/happyhour watch"
-  Then, from your project root:
-    % yarn run happyhour-watch
-  OR:
-    % npm run happyhour-watch
+% git checkout HLPJ-321
 
 `
   )
@@ -127,11 +119,11 @@ async function watch() {
   watcher.once('ready', () => console.log(`happyhour watching: ${patterns}`))
 }
 
-async function track() {
+async function track(_event, modifiedFilePath) {
   const url = argv.url || API_URL
   const debug = argv.debug
   const yamlData = await readConfig()
-  const branch = await gitBranch()
+  const branch = await gitBranch(modifiedFilePath)
   const headers = { Authorization: `Bearer ${yamlData.project_token}` }
   const data = { branch: branch }
 
@@ -143,9 +135,10 @@ async function track() {
   }
 }
 
-async function gitBranch() {
+async function gitBranch(modifiedFilePath) {
+  const path = findGitRoot(modifiedFilePath)
   return await new Promise((resolve, reject) => {
-    exec('git rev-parse --abbrev-ref HEAD', (error, stdout, stderr) => {
+    exec(`git -C ${path} rev-parse --abbrev-ref HEAD`, (error, stdout, stderr) => {
       if (error) {
         reject(error.message)
         return
@@ -158,6 +151,10 @@ async function gitBranch() {
       resolve(stdout.trim())
     })
   })
+}
+
+function findGitRoot(file) {
+  return findConfig('.git').replace('.git', '')
 }
 
 async function readPatterns() {
