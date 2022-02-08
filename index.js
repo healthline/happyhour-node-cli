@@ -98,7 +98,7 @@ Keep HappyHour running from the root of your work directory:
 
 Follow the JIRA-ticket/feature-description branching convention:
 
-% git checkout HLPJ-321
+% git checkout HLPJ-321/my-new-feature
 
 `
   )
