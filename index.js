@@ -192,9 +192,11 @@ async function writeConfig(string) {
 }
 
 async function addHappyhourConfigToGitignore() {
-  const gitignoreFile = await readGitignore()
-  if (gitignoreFile.includes(CONFIG_FILE)) return
-  await writeGitignore(gitignoreFile + '\n' + CONFIG_FILE + '\n')
+  try {
+    const gitignoreFile = await readGitignore()
+    if (gitignoreFile.includes(CONFIG_FILE)) return
+    await writeGitignore(gitignoreFile + '\n' + CONFIG_FILE + '\n')
+  } catch {}
 }
 
 async function readGitignore() {
