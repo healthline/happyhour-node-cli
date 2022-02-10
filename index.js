@@ -80,7 +80,7 @@ async function init() {
     const newPatterns = await promptUser(`Watch patterns [${yamlData.patterns}]: `)
     if (newPatterns) yamlData.patterns = newPatterns
   } else {
-    yamlData.patterns = await promptUser('Watch patterns [e.g.: **/*.rb app/javascript/**/*.js]: ')
+    yamlData.patterns = await promptUser('Watch patterns [e.g.: **/*.rb **/*.js **/*.scss]: ')
   }
 
   readline.close()
