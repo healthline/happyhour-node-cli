@@ -94,11 +94,11 @@ async function init() {
 
 Keep HappyHour running from the root of your work directory:
 
-% happyhour watch
+  % happyhour watch
 
 Follow the JIRA-ticket/feature-description branching convention:
 
-% git checkout HLPJ-321/my-new-feature
+  % git checkout HLPJ-321/my-new-feature
 
 `
   )
