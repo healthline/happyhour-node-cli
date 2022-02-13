@@ -140,7 +140,7 @@ async function track(_event, modifiedFilePath) {
       .then(response => {})
       .catch(error =>
         console.log(
-          `Error reaching ${API_URL}. Status: ${error.statusCode}. Message: ${error.statusMessage}`
+          `Error reaching ${API_URL}. Status: ${error.response.statusCode}. Message: ${error.response.statusMessage}`
         )
       )
   }
