@@ -138,11 +138,22 @@ async function track(_event, modifiedFilePath) {
     axios
       .post(url, data, { headers: headers })
       .then(response => {})
-      .catch(error =>
-        console.log(
-          `Error reaching ${API_URL}. Status: ${error.response.statusCode}. Message: ${error.response.statusMessage}`
-        )
-      )
+      .catch(error => {
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.log(`Happyhour error reaching ${API_URL}. Status: ${error.response.status}`)
+        } else if (error.request) {
+          // The request was made but no response was received
+          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+          // http.ClientRequest in node.js
+          console.log(`Happyhour error reaching ${API_URL}. Status: ${error.request}`)
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.log(`Happyhour error reaching ${API_URL}. Message: ${error.response.message}`)
+        }
+        console.log(`Happyhour error: ${error.config}`)
+      })
   }
 }
 
