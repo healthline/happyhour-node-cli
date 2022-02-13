@@ -103,6 +103,9 @@ Follow the JIRA-ticket/feature-description branching convention:
 
   % git checkout HLPJ-321/my-new-feature
 
+NOTE: the first time happyhour indexes a new directory,
+it may spike your CPU usage very high for an hour or so
+
 `
   )
 }
