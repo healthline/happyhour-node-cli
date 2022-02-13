@@ -160,7 +160,7 @@ async function gitBranch(modifiedFilePath) {
 }
 
 function findGitRoot(file) {
-  const gitPath = findConfig('.git')
+  const gitPath = findConfig('.git', { cwd: file, home: false })
   if (!gitPath) return console.log(`Couldn't find .git for ${file}`)
   return gitPath.replace('.git', '')
 }
