@@ -81,7 +81,7 @@ async function init() {
     if (newExtensions) yamlData.extensions = newExtensions
   } else {
     yamlData.extensions = await promptUser(
-      'File extensions to watch [e.g.: ts js scss css html edge jsx tsx]: '
+      'File extensions to watch [e.g.: go ts js scss css html edge jsx tsx]: '
     )
   }
 
