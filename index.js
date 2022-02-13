@@ -5,6 +5,7 @@
 const CONFIG_FILE = '.happyhour'
 const GITIGNORE_FILE = '.gitignore'
 const API_URL = 'https://happyhour.platejoy.com/api/v1/work_stream_entries'
+const THROTTLE_SECONDS = 10
 
 const axios = require('axios')
 const { exec } = require('child_process')
@@ -110,7 +111,7 @@ async function watch() {
   const extensions = (await readExtensions()).split(' ')
   const patterns = extensions.map(extension => `**/*.${extension}`)
   const watcher = chokidar.watch(patterns, CHOKIDAR_CONFIG)
-  const throttledTrack = throttle(track, 1000)
+  const throttledTrack = throttle(track, THROTTLE_SECONDS * 1000)
 
   watcher.on('all', throttledTrack)
 
