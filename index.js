@@ -138,7 +138,11 @@ async function track(_event, modifiedFilePath) {
     axios
       .post(url, data, { headers: headers })
       .then(response => {})
-      .catch(error => console.log(error))
+      .catch(error =>
+        console.log(
+          `Error reaching ${API_URL}. Status: ${error.statusCode}. Message: ${error.statusMessage}`
+        )
+      )
   }
 }
 
@@ -161,6 +165,7 @@ async function gitBranch(modifiedFilePath) {
     })
   })
 }
+
 function findGitRoot(file) {
   const gitPath = findConfig('.git', { cwd: file, home: false })
   if (!gitPath) return console.log(`Couldn't find .git for ${file}`)
