@@ -135,7 +135,10 @@ async function track(_event, modifiedFilePath) {
     console.log(`happyhour: ${data.branch} -> ${headers['Authorization']}`)
   } else {
     console.log(`happyhour: ${branch}`)
-    axios.post(url, data, { headers: headers })
+    axios
+      .post(url, data, { headers: headers })
+      .then(response => {})
+      .catch(error => console.log(error))
   }
 }
 
@@ -158,7 +161,6 @@ async function gitBranch(modifiedFilePath) {
     })
   })
 }
-
 function findGitRoot(file) {
   const gitPath = findConfig('.git', { cwd: file, home: false })
   if (!gitPath) return console.log(`Couldn't find .git for ${file}`)
