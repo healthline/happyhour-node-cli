@@ -152,7 +152,6 @@ async function track(_event, modifiedFilePath) {
           // Something happened in setting up the request that triggered an Error
           console.log(`Happyhour error reaching ${API_URL}. Message: ${error.response.message}`)
         }
-        console.log(`Happyhour error: ${error.config}`)
       })
   }
 }
