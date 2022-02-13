@@ -76,11 +76,13 @@ async function init() {
     yamlData.project_token = await promptUser('Your project token [from happyhour.platejoy.com]: ')
   }
 
-  if (yamlData.patterns) {
-    const newPatterns = await promptUser(`Watch patterns [${yamlData.patterns}]: `)
-    if (newPatterns) yamlData.patterns = newPatterns
+  if (yamlData.extensions) {
+    const newExtensions = await promptUser(`File extensions to watch  [${yamlData.extensions}]: `)
+    if (newExtensions) yamlData.extensions = newExtensions
   } else {
-    yamlData.patterns = await promptUser('Watch patterns [e.g.: **/*.rb **/*.js **/*.scss]: ')
+    yamlData.extensions = await promptUser(
+      'File extensions to watch [e.g.: ts js scss css html edge jsx tsx]: '
+    )
   }
 
   readline.close()
@@ -105,7 +107,8 @@ Follow the JIRA-ticket/feature-description branching convention:
 }
 
 async function watch() {
-  const patterns = (await readPatterns()).split(' ')
+  const extensions = (await readExtensions()).split(' ')
+  const patterns = extensions.map(extension => `**/*.${extension}`)
   const watcher = chokidar.watch(patterns, CHOKIDAR_CONFIG)
   const throttledTrack = throttle(track, 1000)
 
@@ -116,7 +119,7 @@ async function watch() {
     console.error(error.stack)
   })
 
-  watcher.once('ready', () => console.log(`happyhour watching: ${patterns}`))
+  watcher.once('ready', () => console.log(`happyhour watching: ${patterns.join(' ')}`))
 }
 
 async function track(_event, modifiedFilePath) {
@@ -157,8 +160,8 @@ function findGitRoot(file) {
   return findConfig('.git').replace('.git', '')
 }
 
-async function readPatterns() {
-  return (await readConfig()).patterns
+async function readExtensions() {
+  return (await readConfig()).extensions
 }
 
 // async functions:
