@@ -127,6 +127,7 @@ async function track(_event, modifiedFilePath) {
   const debug = argv.debug
   const yamlData = await readConfig()
   const branch = await gitBranch(modifiedFilePath)
+  if (!branch) return
   const headers = { Authorization: `Bearer ${yamlData.project_token}` }
   const data = { branch: branch }
 
@@ -140,6 +141,8 @@ async function track(_event, modifiedFilePath) {
 
 async function gitBranch(modifiedFilePath) {
   const path = findGitRoot(modifiedFilePath)
+  if (!path) return
+
   return await new Promise((resolve, reject) => {
     exec(`git -C ${path} rev-parse --abbrev-ref HEAD`, (error, stdout, stderr) => {
       if (error) {
@@ -157,7 +160,9 @@ async function gitBranch(modifiedFilePath) {
 }
 
 function findGitRoot(file) {
-  return findConfig('.git').replace('.git', '')
+  const gitPath = findConfig('.git')
+  if (!gitPath) return console.log(`Couldn't find .git for ${file}`)
+  return gitPath.replace('.git', '')
 }
 
 async function readExtensions() {
