@@ -27,6 +27,7 @@ const CHOKIDAR_CONFIG = {
   ignoreInitial: true,
   interval: 100,
   usePolling: false,
+  ignored: '**/node_modules/**',
 }
 
 const VERSION = `happyhour-cli: ${version}`
