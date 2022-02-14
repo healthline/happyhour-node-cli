@@ -75,16 +75,19 @@ async function init() {
     const newAPIToken = await promptUser(`Your API token [${yamlData.api_token}]: `)
     if (newAPIToken) yamlData.api_token = newAPIToken
   } else {
-    yamlData.api_token = await promptUser('Your API token (from happyhour.platejoy.com): ')
+    while (!yamlData.api_token) {
+      const prompt = 'Your API token (from happyhour.platejoy.com): '
+      yamlData.api_token = (await promptUser(prompt)).trim()
+    }
   }
 
   if (yamlData.extensions) {
     const newExtensions = await promptUser(`File extensions to watch  [${yamlData.extensions}]: `)
     if (newExtensions) yamlData.extensions = newExtensions
   } else {
-    yamlData.extensions = await promptUser(
-      'File extensions to watch (e.g.: go ts js scss css html edge jsx tsx): '
-    )
+    const defaultFileExtensions = 'go ts js scss css html edge jsx tsx'
+    const prompt = `File extensions to watch (e.g.: ${defaultFileExtensions}): `
+    yamlData.extensions = (await promptUser(prompt)).trim() || defaultFileExtensions
   }
 
   readline.close()
