@@ -71,11 +71,11 @@ async function init() {
     yamlData = await readConfig()
   } catch (e) {}
 
-  if (yamlData.project_token) {
-    const newProjectToken = await promptUser(`Your project token [${yamlData.project_token}]: `)
-    if (newProjectToken) yamlData.project_token = newProjectToken
+  if (yamlData.api_token) {
+    const newAPIToken = await promptUser(`Your API token [${yamlData.api_token}]: `)
+    if (newAPIToken) yamlData.api_token = newAPIToken
   } else {
-    yamlData.project_token = await promptUser('Your project token [from happyhour.platejoy.com]: ')
+    yamlData.api_token = await promptUser('Your API token (from happyhour.platejoy.com): ')
   }
 
   if (yamlData.extensions) {
@@ -83,7 +83,7 @@ async function init() {
     if (newExtensions) yamlData.extensions = newExtensions
   } else {
     yamlData.extensions = await promptUser(
-      'File extensions to watch [e.g.: go ts js scss css html edge jsx tsx]: '
+      'File extensions to watch (e.g.: go ts js scss css html edge jsx tsx): '
     )
   }
 
@@ -133,7 +133,7 @@ async function track(_event, modifiedFilePath) {
   const yamlData = await readConfig()
   const branch = await gitBranch(modifiedFilePath)
   if (!branch) return
-  const headers = { Authorization: `Bearer ${yamlData.project_token}` }
+  const headers = { Authorization: `Bearer ${yamlData.api_token}` }
   const data = { branch: branch }
 
   if (debug) {
