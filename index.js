@@ -4,7 +4,7 @@
 
 const CONFIG_FILE = '.happyhour'
 const GITIGNORE_FILE = '.gitignore'
-const API_URL = 'https://happyhour.platejoy.com/api/v1/work_stream_entries'
+const API_URL = 'https://happyhour.rvapps.io/api/v1/work_stream_entries'
 const THROTTLE_SECONDS = 10
 
 const axios = require('axios')
@@ -76,7 +76,7 @@ async function init() {
     if (newAPIToken) yamlData.api_token = newAPIToken
   } else {
     while (!yamlData.api_token) {
-      const prompt = 'Your API token (from happyhour.platejoy.com): '
+      const prompt = 'Your API token (from happyhour.rvapps.io): '
       yamlData.api_token = (await promptUser(prompt)).trim()
     }
   }
