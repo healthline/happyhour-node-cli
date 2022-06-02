@@ -4,7 +4,8 @@
 
 const CONFIG_FILE = '.happyhour'
 const GITIGNORE_FILE = '.gitignore'
-const API_URL = 'https://happyhour.rvapps.io/api/v1/work_stream_entries'
+const HOST = 'https://happyhour.rvapps.io'
+const API_URL = `${HOST}/api/v1/work_stream_entries`
 const THROTTLE_SECONDS = 10
 
 const axios = require('axios')
@@ -34,6 +35,7 @@ const VERSION = `happyhour-cli: ${version}`
 
 const { argv } = yargs
   .usage('happyhour init')
+  .usage('happyhour watch')
   .demand(1)
   .option('u', {
     alias: 'url',
@@ -76,7 +78,7 @@ async function init() {
     if (newAPIToken) yamlData.api_token = newAPIToken
   } else {
     while (!yamlData.api_token) {
-      const prompt = 'Your API token (from happyhour.rvapps.io): '
+      const prompt = `Your API token (from ${HOST}): `
       yamlData.api_token = (await promptUser(prompt)).trim()
     }
   }
@@ -148,17 +150,21 @@ async function track(_event, modifiedFilePath) {
       .then(response => {})
       .catch(error => {
         if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
-          console.log(`Happyhour error reaching ${API_URL}. Status: ${error.response.status}`)
-        } else if (error.request) {
-          // The request was made but no response was received
-          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-          // http.ClientRequest in node.js
-          console.log(`Happyhour error reaching ${API_URL}. Status: ${error.request}`)
+          if (error.response.status === 401)
+            console.error(
+              '\x1b[31m%s\x1b[0m',
+              `\nInvalid happyhour API token.\nVisit ${HOST}/api_tokens for a new token,\nthen run \`happyhour init\`.\n`
+            )
+          else
+            console.error(
+              '\x1b[31m%s\x1b[0m',
+              `\nHappyhour error: status ${error.response.status}\n`
+            )
         } else {
-          // Something happened in setting up the request that triggered an Error
-          console.log(`Happyhour error reaching ${API_URL}. Message: ${error.response.message}`)
+          console.error(
+            '\x1b[31m%s\x1b[0m',
+            `\nHappyhour error. Are you able to reach ${HOST} in a browser?\n`
+          )
         }
       })
   }
