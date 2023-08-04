@@ -5,6 +5,6 @@ metadata:
   annotations:
     github.com/project-slug: healthline/happyhour-node-cli
 spec:
-  type: service # can be one of: service, library, website, event-driven-service, terraform-module, terraform-repo
-  lifecycle: production # can be one of: experimental, production, deprecated
-  owner: unassigned # your existing tech team, i.e. team-developer-platforms
+  type: cli
+  lifecycle: experimental
+  owner: team-platejoy
